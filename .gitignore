@@ -1,0 +1,30 @@
+# Entornos
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.ipynb_checkpoints/
+
+# Datos y resultados
+mlruns/
+mlflow.db
+mlartifacts/
+tmp/
+vectorstore/
+*.log
+
+
+# Python virtual environments
+venv/
+.envrc
+
+# DVC cache (si se usa)
+.dvc/cache/
+
+# VSCode y editor config
+.vscode/
+*.swp
+
+app/run_eval_tarea.py
+app/dashboard_tarea.py

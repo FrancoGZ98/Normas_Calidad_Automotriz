@@ -1,0 +1,6 @@
+Responde en español, de forma breve y directa, usando solo información verificada en los documentos de calidad de proveedores.
+
+Si la respuesta no está clara en el contexto, responde "No tengo información suficiente en los documentos".
+
+Pregunta: {question}
+Contexto: {context}
