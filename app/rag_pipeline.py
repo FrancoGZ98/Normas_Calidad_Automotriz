@@ -25,7 +25,7 @@ VECTOR_DIR = get_vectorstore_dir()  # vectorstore/openai o vectorstore/fastembed
 def load_documents(path=DATA_DIR):
     docs = []
     for file in os.listdir(path):
-        if file.endswith(".pdf"):
+        if file.lower().endswith(".pdf"):
             loader = PyPDFLoader(os.path.join(path, file))
             docs.extend(loader.load())
     return docs
@@ -34,12 +34,26 @@ CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 512)
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 50)
 
 def save_vectorstore(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP, persist_path=VECTOR_DIR):
+    pdfs = sorted(f for f in os.listdir(DATA_DIR) if f.lower().endswith(".pdf"))
+    print(f"📂 PDFs encontrados en '{DATA_DIR}': {len(pdfs)} → {pdfs}")
+    if not pdfs:
+        raise FileNotFoundError(
+            f"No hay archivos PDF en '{DATA_DIR}'. Agrega los documentos del dominio "
+            "antes de construir el índice."
+        )
     docs = load_documents()
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size,
         chunk_overlap=chunk_overlap
     )
     chunks = splitter.split_documents(docs)
+    print(f"📄 Páginas cargadas: {len(docs)} | ✂️ Fragmentos: {len(chunks)} "
+          f"(chunk_size={chunk_size}, overlap={chunk_overlap})")
+    if not chunks:
+        raise ValueError(
+            "Los PDFs no produjeron texto. ¿Son escaneados (imágenes)? "
+            "PyPDFLoader solo extrae texto digital."
+        )
     embeddings = get_embeddings()
     vectordb = FAISS.from_documents(chunks, embedding=embeddings)
     vectordb.save_local(persist_path)
