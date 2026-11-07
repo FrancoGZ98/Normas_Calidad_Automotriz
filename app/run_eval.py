@@ -10,7 +10,7 @@ run del experimento "rag_evaluation", enlazado a la versión de la app
 Uso:
     python app/run_eval.py
     PROMPT_VERSION=prompts:/asistente_calidad@v2_resumido_directo python app/run_eval.py
-    RETRIEVER_K=6 python app/run_eval.py
+    RETRIEVER_K=8 python app/run_eval.py
     EVAL_SCORERS=correctness,retrieval_groundedness python app/run_eval.py   # solo algunos jueces
 """
 
@@ -39,9 +39,9 @@ load_dotenv()
 
 # Configuración
 PROMPT_VERSION = os.getenv("PROMPT_VERSION") or DEFAULT_PROMPT
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 512)        # deben coincidir con el índice construido
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 50)
-K = int(os.getenv("RETRIEVER_K") or 4)
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 1000)        # deben coincidir con el índice construido
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 150)
+K = int(os.getenv("RETRIEVER_K") or 6)
 DATASET_PATH = "tests/eval_dataset.json"
 
 # Paralelismo de MLflow. Por defecto evalúa ~10 filas x 10 jueces a la vez, lo que

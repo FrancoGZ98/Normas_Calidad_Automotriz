@@ -52,6 +52,11 @@ jobs:
         LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'openai' }}
         EVAL_MODEL: ${{ vars.EVAL_MODEL }}
         PROMPT_VERSION: ${{ vars.PROMPT_VERSION }}
+        # Configuración del RAG (se puede cambiar con Variables del repo para los experimentos)
+        EMBEDDINGS_MODEL: ${{ vars.EMBEDDINGS_MODEL }}
+        CHUNK_SIZE: ${{ vars.CHUNK_SIZE }}
+        CHUNK_OVERLAP: ${{ vars.CHUNK_OVERLAP }}
+        RETRIEVER_K: ${{ vars.RETRIEVER_K }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: |

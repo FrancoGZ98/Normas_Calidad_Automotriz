@@ -239,13 +239,13 @@ Todo se configura en `.env`, sin tocar código:
 | `LLM_MODEL` | modelo de chat | `gpt-4o` (OpenAI) / `openai/gpt-oss-120b` (Groq) |
 | `OPENAI_API_KEY` / `GROQ_API_KEY` | key del proveedor que uses | — |
 | `EMBEDDINGS_PROVIDER` | `openai` \| `fastembed` (local) | `openai` con OpenAI, `fastembed` con Groq |
-| `EMBEDDINGS_MODEL` | modelo de embeddings | `text-embedding-ada-002` / `paraphrase-multilingual-MiniLM-L12-v2` |
+| `EMBEDDINGS_MODEL` | modelo de embeddings | `text-embedding-ada-002` / `intfloat/multilingual-e5-large` |
 | `EVAL_MODEL` | juez de `run_eval.py`, formato `proveedor:/modelo` | `openai:/gpt-4o-mini` / `groq:/openai/gpt-oss-20b` |
 | `EVAL_SCORERS` | ejecutar solo algunos jueces, separados por coma | todos |
 | `PROMPT_NAME` | nombre del prompt en el registro | `asistente_rrhh` |
 | `PROMPT_VERSION` | prompt a usar (ver paso 3) | `prompts:/<PROMPT_NAME>@production` |
-| `RETRIEVER_K` | fragmentos que se envían al LLM en `run_eval.py` | `4` |
-| `CHUNK_SIZE` / `CHUNK_OVERLAP` | tamaño y solape de los fragmentos al construir el índice (paso 2) | `512` / `50` |
+| `RETRIEVER_K` | fragmentos que se envían al LLM en `run_eval.py` | `6` |
+| `CHUNK_SIZE` / `CHUNK_OVERLAP` | tamaño y solape de los fragmentos al construir el índice (paso 2) | `1000` / `150` |
 | `MLFLOW_TRACKING_URI` | servidor de MLflow (opcional) | `./mlflow.db` (SQLite) |
 
 Las variables que dejes vacías o comentadas toman su valor por defecto.
@@ -272,7 +272,7 @@ python -c "from app.rag_pipeline import save_vectorstore; save_vectorstore()"
 ```
 
 Esto:
-- Divide los documentos en chunks (`CHUNK_SIZE` y `CHUNK_OVERLAP` del `.env`; por defecto 512 y 50)
+- Divide los documentos en chunks (`CHUNK_SIZE` y `CHUNK_OVERLAP` del `.env`; por defecto 1000 y 150)
 - Genera embeddings con OpenAI o FastEmbed (según `EMBEDDINGS_PROVIDER`)
 - Guarda el índice vectorial en `vectorstore/openai/` o `vectorstore/fastembed/`
 - Registra los parámetros en **MLflow**
@@ -381,7 +381,7 @@ Ver [Dónde mirar en la UI de MLflow](#-dónde-mirar-en-la-ui-de-mlflow) para sa
 python app/run_eval.py
 
 # Comparar otra configuración
-PROMPT_VERSION=prompts:/asistente_rrhh@v2_resumido_directo RETRIEVER_K=6 python app/run_eval.py
+PROMPT_VERSION=prompts:/asistente_calidad@v2_resumido_directo RETRIEVER_K=8 python app/run_eval.py
 ```
 
 Usa `mlflow.genai.evaluate` con `tests/eval_dataset.json` como ground truth y estos **jueces** (LLM-as-a-judge):

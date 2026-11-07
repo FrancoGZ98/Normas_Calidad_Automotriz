@@ -30,8 +30,8 @@ def load_documents(path=DATA_DIR):
             docs.extend(loader.load())
     return docs
 
-CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 512)
-CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 50)
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 1000)
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 150)
 
 def save_vectorstore(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP, persist_path=VECTOR_DIR):
     pdfs = sorted(f for f in os.listdir(DATA_DIR) if f.lower().endswith(".pdf"))
@@ -103,7 +103,7 @@ def list_prompt_versions():
     """Alias y versiones disponibles en el registro (o archivos locales si no hay registro)."""
     return list_prompt_options()
 
-def build_chain(vectordb, prompt_version=DEFAULT_PROMPT, k=4):
+def build_chain(vectordb, prompt_version=DEFAULT_PROMPT, k=int(os.getenv("RETRIEVER_K") or 6)):
     prompt = load_prompt(prompt_version)
     retriever = vectordb.as_retriever(search_kwargs={"k": k})
     return ConversationalRetrievalChain.from_llm(
