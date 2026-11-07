@@ -1,0 +1,42 @@
+name: Diagnóstico de recuperación
+
+# Solo se ejecuta a mano (Actions → Diagnóstico de recuperación → Run workflow).
+# No usa el LLM ni las API keys: mide si el retriever encuentra la página esperada.
+on:
+  workflow_dispatch:
+
+jobs:
+  retrieval:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+            chunk: 512
+          - model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+            chunk: 1000
+          - model: sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+            chunk: 512
+          - model: intfloat/multilingual-e5-large
+            chunk: 1000
+    name: ${{ matrix.model }} · chunk ${{ matrix.chunk }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: pip
+    - name: Instalar dependencias
+      run: pip install -r requirements.txt
+    - name: Medir hit@k
+      env:
+        LLM_PROVIDER: groq
+        EMBEDDINGS_PROVIDER: fastembed
+        EMBEDDINGS_MODEL: ${{ matrix.model }}
+        CHUNK_SIZE: ${{ matrix.chunk }}
+        CHUNK_OVERLAP: ${{ matrix.chunk == 1000 && 150 || 50 }}
+        DIAG_KS: "4,8"
+        MLFLOW_TRACKING_URI: sqlite:///mlflow.db
+      run: python -m app.diagnostico_retrieval
