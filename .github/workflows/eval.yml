@@ -11,6 +11,9 @@ on:
 jobs:
   run-eval:
     runs-on: ubuntu-latest
+    # Con la cuota gratuita de Groq una corrida normal tarda ~1-1.5 h; si pasa de 4 h
+    # casi seguro se agotó el límite diario de tokens y es mejor cortar.
+    timeout-minutes: 240
 
     steps:
     - name: Clonar repo
@@ -57,6 +60,10 @@ jobs:
         CHUNK_SIZE: ${{ vars.CHUNK_SIZE }}
         CHUNK_OVERLAP: ${{ vars.CHUNK_OVERLAP }}
         RETRIEVER_K: ${{ vars.RETRIEVER_K }}
+        # Jueces que corren en CI. retrieval_relevance hace una llamada por fragmento
+        # (k por pregunta) y agota la cuota diaria de Groq; se deja para corridas manuales.
+        # Para correrlos todos: crea la Variable EVAL_SCORERS con la lista completa.
+        EVAL_SCORERS: ${{ vars.EVAL_SCORERS || 'correctness,safety,relevance_to_query,retrieval_groundedness' }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: |
