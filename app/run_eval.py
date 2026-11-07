@@ -142,9 +142,56 @@ def main():
     print("\n📈 Resultados agregados:")
     for name, value in sorted(results.metrics.items()):
         print(f"   {name:40s} {value:.2f}" if isinstance(value, (int, float)) else f"   {name}: {value}")
+    try:
+        print_detalle_por_pregunta(results.run_id)
+    except Exception as e:  # el detalle es solo diagnóstico: nunca debe romper la evaluación
+        print(f"⚠️  No se pudo imprimir el detalle por pregunta: {e!r}")
     print(f"\n🔎 Detalle por pregunta (trazas + razonamiento de cada juez): mlflow ui → "
           f"experimento '{EVAL_EXPERIMENT}' → run '{run_name}'")
     return results
+
+
+def _assessment_value(assessments, name):
+    """Busca el veredicto y el razonamiento de un juez en la lista de assessments de una traza."""
+    for a in assessments or []:
+        a_name = getattr(a, "name", None) or (a.get("assessment_name") if isinstance(a, dict) else None)
+        if a_name != name:
+            continue
+        if isinstance(a, dict):
+            fb = a.get("feedback") or {}
+            return fb.get("value"), a.get("rationale") or ""
+        return getattr(a, "value", None), getattr(a, "rationale", "") or ""
+    return None, ""
+
+
+def _es_positivo(value):
+    return str(value).strip().lower() in ("yes", "true", "1", "1.0", "pass")
+
+
+def print_detalle_por_pregunta(run_id, metric="correctness"):
+    """Imprime, para cada pregunta, el veredicto del juez, la respuesta y el porqué."""
+    with open(DATASET_PATH, encoding="utf-8") as f:
+        tipos = {item["question"]: item.get("type", "?") for item in json.load(f)}
+
+    traces = mlflow.search_traces(run_id=run_id)
+    print(f"\n🧾 Detalle por pregunta ({metric}) — {len(traces)} trazas")
+    por_tipo = {}
+    for i, row in enumerate(traces.itertuples(index=False), 1):
+        request = row.request if isinstance(row.request, dict) else json.loads(row.request or "{}")
+        question = request.get("question", str(request))
+        response = row.response if isinstance(row.response, str) else json.dumps(row.response, ensure_ascii=False)
+        value, rationale = _assessment_value(row.assessments, metric)
+        ok = _es_positivo(value)
+        tipo = tipos.get(question, "?")
+        por_tipo.setdefault(tipo, []).append(ok)
+        print(f"{'✅' if ok else '❌'} [{i:02d}] ({tipo}) {question[:80]}")
+        print(f"      respuesta: {(response or '').strip()[:220]!r}")
+        if not ok:
+            print(f"      juez:      {rationale.strip()[:300]!r}")
+
+    print(f"\n📊 {metric} por tipo de pregunta:")
+    for tipo, oks in sorted(por_tipo.items()):
+        print(f"   {tipo:16s} {sum(oks)}/{len(oks)} = {sum(oks) / len(oks):.2f}")
 
 
 if __name__ == "__main__":
