@@ -159,8 +159,16 @@ def _assessment_value(assessments, name):
             continue
         if isinstance(a, dict):
             fb = a.get("feedback") or {}
-            return fb.get("value"), a.get("rationale") or ""
-        return getattr(a, "value", None), getattr(a, "rationale", "") or ""
+            err = fb.get("error") or a.get("error")
+            rationale = a.get("rationale") or ""
+        else:
+            fb, err = None, getattr(a, "error", None)
+            rationale = getattr(a, "rationale", "") or ""
+        if err and not rationale:  # el juez falló (cuota, formato, modelo): mostrar el error
+            msg = err.get("error_message") if isinstance(err, dict) else getattr(err, "error_message", err)
+            rationale = f"ERROR DEL JUEZ: {msg}"
+        value = fb.get("value") if isinstance(a, dict) else getattr(a, "value", None)
+        return value, rationale
     return None, ""
 
 
