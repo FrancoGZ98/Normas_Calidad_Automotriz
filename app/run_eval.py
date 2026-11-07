@@ -41,7 +41,7 @@ load_dotenv()
 PROMPT_VERSION = os.getenv("PROMPT_VERSION") or DEFAULT_PROMPT
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE") or 1000)        # deben coincidir con el índice construido
 CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP") or 150)
-K = int(os.getenv("RETRIEVER_K") or 4)
+K = int(os.getenv("RETRIEVER_K") or 8)
 DATASET_PATH = "tests/eval_dataset.json"
 
 # Paralelismo de MLflow. Por defecto evalúa ~10 filas x 10 jueces a la vez, lo que
@@ -182,12 +182,16 @@ def print_detalle_por_pregunta(run_id, metric="correctness"):
         tipos = {item["question"]: item.get("type", "?") for item in json.load(f)}
 
     traces = mlflow.search_traces(run_id=run_id)
-    print(f"\n🧾 Detalle por pregunta ({metric}) — {len(traces)} trazas")
+    print(f"\n🧾 Detalle por pregunta ({metric}) — {len(traces)} trazas (se omiten las auxiliares sin respuesta)")
     por_tipo = {}
-    for i, row in enumerate(traces.itertuples(index=False), 1):
+    i = 0
+    for row in traces.itertuples(index=False):
         request = row.request if isinstance(row.request, dict) else json.loads(row.request or "{}")
         question = request.get("question", str(request))
+        if row.response is None or row.response == "null":
+            continue  # traza auxiliar (validación inicial de MLflow), no es una fila del dataset
         response = row.response if isinstance(row.response, str) else json.dumps(row.response, ensure_ascii=False)
+        i += 1
         value, rationale = _assessment_value(row.assessments, metric)
         ok = _es_positivo(value)
         tipo = tipos.get(question, "?")

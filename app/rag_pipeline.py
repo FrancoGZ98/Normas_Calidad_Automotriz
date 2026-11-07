@@ -103,7 +103,7 @@ def list_prompt_versions():
     """Alias y versiones disponibles en el registro (o archivos locales si no hay registro)."""
     return list_prompt_options()
 
-def build_chain(vectordb, prompt_version=DEFAULT_PROMPT, k=int(os.getenv("RETRIEVER_K") or 4)):
+def build_chain(vectordb, prompt_version=DEFAULT_PROMPT, k=int(os.getenv("RETRIEVER_K") or 8)):
     prompt = load_prompt(prompt_version)
     retriever = vectordb.as_retriever(search_kwargs={"k": k})
     return ConversationalRetrievalChain.from_llm(

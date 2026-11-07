@@ -244,7 +244,7 @@ Todo se configura en `.env`, sin tocar código:
 | `EVAL_SCORERS` | ejecutar solo algunos jueces, separados por coma | todos |
 | `PROMPT_NAME` | nombre del prompt en el registro | `asistente_rrhh` |
 | `PROMPT_VERSION` | prompt a usar (ver paso 3) | `prompts:/<PROMPT_NAME>@production` |
-| `RETRIEVER_K` | fragmentos que se envían al LLM en `run_eval.py` | `4` |
+| `RETRIEVER_K` | fragmentos que se envían al LLM en `run_eval.py` | `8` |
 | `CHUNK_SIZE` / `CHUNK_OVERLAP` | tamaño y solape de los fragmentos al construir el índice (paso 2) | `1000` / `150` |
 | `MLFLOW_TRACKING_URI` | servidor de MLflow (opcional) | `./mlflow.db` (SQLite) |
 
